@@ -1,0 +1,19 @@
+Package: bayesVAR
+Type: Package
+Title: Bayesian analysis of Vector Autoregressive Models
+Version: 0.1.0
+Date: 2017-01-10
+Author: Gediminas Bagdonas
+Maintainer: Gediminas Bagdonas <gedbagdonas@gmail.com>
+Description: R/C++ implementation of Bayes VAR models. Currently includes BVAR, VAR-TVP.
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+Imports:
+    Rcpp (>= 0.12.7),
+    progress,
+    ggplot2,
+    reshape2
+LinkingTo: Rcpp, RcppArmadillo
+RoxygenNote: 5.0.1
+RdMacros: Rdpack
