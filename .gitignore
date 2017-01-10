@@ -1,0 +1,7 @@
+.Rproj.user
+.Rhistory
+.RData
+.Rprofile
+.DS_Store
+*.o
+*.dll
