@@ -2,7 +2,7 @@
 % Please edit documentation in R/bayesVAR_tvp.R
 \name{bayesVAR_TVP}
 \alias{bayesVAR_TVP}
-\title{Estimates Time-Varying Parameters VAR using MCMC sampler.}
+\title{Estimates TVP-VAR model using MCMC sampler.}
 \usage{
 bayesVAR_TVP(Y, p = 1, nburn = 10000, nsim = 50000, tau = 40,
   beta.algorithm = "DK")
@@ -21,15 +21,19 @@ bayesVAR_TVP(Y, p = 1, nburn = 10000, nsim = 50000, tau = 40,
 \item{beta.algorithm}{Algorithm for drawing time-varying VAR parameters. Either 'DK' for Durbin and Coopman 2002, or 'CC' for Carter and Cohn 1994. Defaults to 'DK'}
 }
 \value{
-\item{beta}{Draws of time-varying parameters (beta_t). 4D array [t x M x Mp+1 x draw]} 
-        \item{H}{Draws of observation equation error term covariance matrix H. 3D array [M x M x draw]} 
+\item{beta}{Draws of time-varying parameters (beta_t). 4D array [t x M x M*p+1 x draw]}
+        \item{H}{Draws of observation equation error term covariance matrix H. 3D array [M x M x draw]}
         \item{Q}{Draws of state equation error term covariance matrix Q. 3D array [M x M x draw]}
 }
 \description{
-Estimates Time-Varying Parameters VAR using MCMC sampler.
+Estimates Time-Varying Parameters VAR model using MCMC sampler.
+\deqn{Y_t = Z_t \beta_t + \epsilon_t; \epsilon_t ~ N(0, H)}
+\deqn{\beta_t = \beta_{t-1} + u_t; u_t ~ N(0, Q)}
+Prior parameters are estimated using OLS method on training sample.
 }
 \references{
 \itemize{
+              \item \insertRef{KoopKorobilis2010}{bayesVAR}
               \item \insertRef{CC1994}{bayesVAR}
               \item \insertRef{DK2002}{bayesVAR}
             }

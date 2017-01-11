@@ -65,22 +65,8 @@ arma::mat rcppResidConstB(arma::mat y, arma::cube Z, arma::rowvec beta) {
   for(int i = 0; i < n; ++i) {
     Resid.row(i) = y.row(i) - beta * Z.slice(i).t();
   }
-  
+
   return Resid;
 }
-// [[Rcpp::export]]
-arma::field<arma::cube> rcppIRF(arma::cube B, arma::cube H, int R, bool orthogonal = false) {
-  int n = B.n_slices;
-  int m = B.n_cols;
-  arma::field<arma::cube> IF(n);
-  for(int i = 0; i < n; i ++) {
-    arma::cube IFi(m, m, R+1);
-    if(orthogonal) IFi.slice(0) = chol(H.slice(i));
-    else IFi.slice(0).eye();
-    for(int j = 1; j <= R; j++) {
-      IFi.slice(j) = B.slice(i) * IFi.slice(j-1); 
-    }
-    IF(i) = IFi;
-  }
-  return IF;
-}
+
+
