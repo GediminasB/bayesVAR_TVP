@@ -6,84 +6,6 @@
 
 using namespace Rcpp;
 
-// rcppDrawBeta_CC
-arma::mat rcppDrawBeta_CC(arma::mat y, arma::cube Z, arma::cube H, arma::cube Q, arma::mat Pi, arma::rowvec beta1, arma::mat P1);
-RcppExport SEXP bayesVAR_rcppDrawBeta_CC(SEXP ySEXP, SEXP ZSEXP, SEXP HSEXP, SEXP QSEXP, SEXP PiSEXP, SEXP beta1SEXP, SEXP P1SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type y(ySEXP);
-    Rcpp::traits::input_parameter< arma::cube >::type Z(ZSEXP);
-    Rcpp::traits::input_parameter< arma::cube >::type H(HSEXP);
-    Rcpp::traits::input_parameter< arma::cube >::type Q(QSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type Pi(PiSEXP);
-    Rcpp::traits::input_parameter< arma::rowvec >::type beta1(beta1SEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type P1(P1SEXP);
-    rcpp_result_gen = Rcpp::wrap(rcppDrawBeta_CC(y, Z, H, Q, Pi, beta1, P1));
-    return rcpp_result_gen;
-END_RCPP
-}
-// rcppKalmanFilterSmooth
-arma::mat rcppKalmanFilterSmooth(arma::mat y, arma::cube Z, arma::cube H, arma::cube Q, arma::mat Pi, arma::rowvec beta1, arma::mat P1);
-RcppExport SEXP bayesVAR_rcppKalmanFilterSmooth(SEXP ySEXP, SEXP ZSEXP, SEXP HSEXP, SEXP QSEXP, SEXP PiSEXP, SEXP beta1SEXP, SEXP P1SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type y(ySEXP);
-    Rcpp::traits::input_parameter< arma::cube >::type Z(ZSEXP);
-    Rcpp::traits::input_parameter< arma::cube >::type H(HSEXP);
-    Rcpp::traits::input_parameter< arma::cube >::type Q(QSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type Pi(PiSEXP);
-    Rcpp::traits::input_parameter< arma::rowvec >::type beta1(beta1SEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type P1(P1SEXP);
-    rcpp_result_gen = Rcpp::wrap(rcppKalmanFilterSmooth(y, Z, H, Q, Pi, beta1, P1));
-    return rcpp_result_gen;
-END_RCPP
-}
-// rcppDrawBeta_DK
-arma::mat rcppDrawBeta_DK(arma::mat y, arma::cube Z, arma::cube H, arma::cube Q, arma::mat Pi, arma::rowvec beta1, arma::mat P1);
-RcppExport SEXP bayesVAR_rcppDrawBeta_DK(SEXP ySEXP, SEXP ZSEXP, SEXP HSEXP, SEXP QSEXP, SEXP PiSEXP, SEXP beta1SEXP, SEXP P1SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type y(ySEXP);
-    Rcpp::traits::input_parameter< arma::cube >::type Z(ZSEXP);
-    Rcpp::traits::input_parameter< arma::cube >::type H(HSEXP);
-    Rcpp::traits::input_parameter< arma::cube >::type Q(QSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type Pi(PiSEXP);
-    Rcpp::traits::input_parameter< arma::rowvec >::type beta1(beta1SEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type P1(P1SEXP);
-    rcpp_result_gen = Rcpp::wrap(rcppDrawBeta_DK(y, Z, H, Q, Pi, beta1, P1));
-    return rcpp_result_gen;
-END_RCPP
-}
-// rcppIRF
-arma::field<arma::cube> rcppIRF(arma::cube B, arma::cube H, int R, bool orthogonal);
-RcppExport SEXP bayesVAR_rcppIRF(SEXP BSEXP, SEXP HSEXP, SEXP RSEXP, SEXP orthogonalSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::cube >::type B(BSEXP);
-    Rcpp::traits::input_parameter< arma::cube >::type H(HSEXP);
-    Rcpp::traits::input_parameter< int >::type R(RSEXP);
-    Rcpp::traits::input_parameter< bool >::type orthogonal(orthogonalSEXP);
-    rcpp_result_gen = Rcpp::wrap(rcppIRF(B, H, R, orthogonal));
-    return rcpp_result_gen;
-END_RCPP
-}
-// rcppRmvnorm
-arma::mat rcppRmvnorm(int n, arma::colvec mu, arma::mat sigma);
-RcppExport SEXP bayesVAR_rcppRmvnorm(SEXP nSEXP, SEXP muSEXP, SEXP sigmaSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< int >::type n(nSEXP);
-    Rcpp::traits::input_parameter< arma::colvec >::type mu(muSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type sigma(sigmaSEXP);
-    rcpp_result_gen = Rcpp::wrap(rcppRmvnorm(n, mu, sigma));
-    return rcpp_result_gen;
-END_RCPP
-}
 // rcppExpandKronecker
 arma::cube rcppExpandKronecker(arma::mat x, int n);
 RcppExport SEXP bayesVAR_rcppExpandKronecker(SEXP xSEXP, SEXP nSEXP) {
@@ -157,6 +79,99 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::cube >::type Z(ZSEXP);
     Rcpp::traits::input_parameter< arma::rowvec >::type beta(betaSEXP);
     rcpp_result_gen = Rcpp::wrap(rcppResidConstB(y, Z, beta));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rcppDrawBeta_CC
+arma::mat rcppDrawBeta_CC(arma::mat y, arma::cube Z, arma::cube H, arma::cube Q, arma::mat Pi, arma::rowvec beta1, arma::mat P1);
+RcppExport SEXP bayesVAR_rcppDrawBeta_CC(SEXP ySEXP, SEXP ZSEXP, SEXP HSEXP, SEXP QSEXP, SEXP PiSEXP, SEXP beta1SEXP, SEXP P1SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type y(ySEXP);
+    Rcpp::traits::input_parameter< arma::cube >::type Z(ZSEXP);
+    Rcpp::traits::input_parameter< arma::cube >::type H(HSEXP);
+    Rcpp::traits::input_parameter< arma::cube >::type Q(QSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type Pi(PiSEXP);
+    Rcpp::traits::input_parameter< arma::rowvec >::type beta1(beta1SEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type P1(P1SEXP);
+    rcpp_result_gen = Rcpp::wrap(rcppDrawBeta_CC(y, Z, H, Q, Pi, beta1, P1));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rcppKalmanFilterSmooth
+arma::mat rcppKalmanFilterSmooth(arma::mat y, arma::cube Z, arma::cube H, arma::cube Q, arma::mat Pi, arma::rowvec beta1, arma::mat P1);
+RcppExport SEXP bayesVAR_rcppKalmanFilterSmooth(SEXP ySEXP, SEXP ZSEXP, SEXP HSEXP, SEXP QSEXP, SEXP PiSEXP, SEXP beta1SEXP, SEXP P1SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type y(ySEXP);
+    Rcpp::traits::input_parameter< arma::cube >::type Z(ZSEXP);
+    Rcpp::traits::input_parameter< arma::cube >::type H(HSEXP);
+    Rcpp::traits::input_parameter< arma::cube >::type Q(QSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type Pi(PiSEXP);
+    Rcpp::traits::input_parameter< arma::rowvec >::type beta1(beta1SEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type P1(P1SEXP);
+    rcpp_result_gen = Rcpp::wrap(rcppKalmanFilterSmooth(y, Z, H, Q, Pi, beta1, P1));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rcppDrawBeta_DK
+arma::mat rcppDrawBeta_DK(arma::mat y, arma::cube Z, arma::cube H, arma::cube Q, arma::mat Pi, arma::rowvec beta1, arma::mat P1);
+RcppExport SEXP bayesVAR_rcppDrawBeta_DK(SEXP ySEXP, SEXP ZSEXP, SEXP HSEXP, SEXP QSEXP, SEXP PiSEXP, SEXP beta1SEXP, SEXP P1SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type y(ySEXP);
+    Rcpp::traits::input_parameter< arma::cube >::type Z(ZSEXP);
+    Rcpp::traits::input_parameter< arma::cube >::type H(HSEXP);
+    Rcpp::traits::input_parameter< arma::cube >::type Q(QSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type Pi(PiSEXP);
+    Rcpp::traits::input_parameter< arma::rowvec >::type beta1(beta1SEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type P1(P1SEXP);
+    rcpp_result_gen = Rcpp::wrap(rcppDrawBeta_DK(y, Z, H, Q, Pi, beta1, P1));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rcppIRF
+arma::field<arma::cube> rcppIRF(arma::cube B, arma::cube H, int R, bool orthogonal);
+RcppExport SEXP bayesVAR_rcppIRF(SEXP BSEXP, SEXP HSEXP, SEXP RSEXP, SEXP orthogonalSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::cube >::type B(BSEXP);
+    Rcpp::traits::input_parameter< arma::cube >::type H(HSEXP);
+    Rcpp::traits::input_parameter< int >::type R(RSEXP);
+    Rcpp::traits::input_parameter< bool >::type orthogonal(orthogonalSEXP);
+    rcpp_result_gen = Rcpp::wrap(rcppIRF(B, H, R, orthogonal));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rcppPredictiveSim_TVP
+arma::cube rcppPredictiveSim_TVP(arma::rowvec starting_Y, arma::mat B, arma::cube H, arma::cube Q, int T);
+RcppExport SEXP bayesVAR_rcppPredictiveSim_TVP(SEXP starting_YSEXP, SEXP BSEXP, SEXP HSEXP, SEXP QSEXP, SEXP TSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::rowvec >::type starting_Y(starting_YSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type B(BSEXP);
+    Rcpp::traits::input_parameter< arma::cube >::type H(HSEXP);
+    Rcpp::traits::input_parameter< arma::cube >::type Q(QSEXP);
+    Rcpp::traits::input_parameter< int >::type T(TSEXP);
+    rcpp_result_gen = Rcpp::wrap(rcppPredictiveSim_TVP(starting_Y, B, H, Q, T));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rcppRmvnorm
+arma::mat rcppRmvnorm(int n, arma::colvec mu, arma::mat sigma);
+RcppExport SEXP bayesVAR_rcppRmvnorm(SEXP nSEXP, SEXP muSEXP, SEXP sigmaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< arma::colvec >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type sigma(sigmaSEXP);
+    rcpp_result_gen = Rcpp::wrap(rcppRmvnorm(n, mu, sigma));
     return rcpp_result_gen;
 END_RCPP
 }

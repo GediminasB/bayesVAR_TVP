@@ -7,6 +7,9 @@ setClass("bayesVAR_TVP")
 #' @export
 setClass("bayesVAR")
 
+#' @export
+setClass("predictiveDensity_bayesVAR")
+
 # Impulse response generic
 #' Impulse response function for bayes VAR models
 #' @export
@@ -16,6 +19,13 @@ impulse.response = function(x, ...) UseMethod("impulse.response", x)
 #' Plot time-varying beta estimates for bayes VAR models
 #' @export
 plot.beta = function(x, ...) UseMethod("plot.beta", x)
+
+# Predictive density generic
+#' Calculates predictive density for given bayes MCMC VAR model and number of periods
+#' @param model bayes VAR model
+#' @param T number of time steps ahead to predict
+#' @export
+predictive.density = function(x, ...) UseMethod("predictive.density", x)
 
 
 # Conditional draw of beta
@@ -127,9 +137,73 @@ bayesVAR_TVP = function(Y, p = 1, nburn = 10000, nsim = 50000, tau = 40, beta.al
   Q.out = Q.post[,,(nburn+2):(N+1)]
   colnames(Q.out) = rownames(Q.out) = colnames(Z)
 
-  structure(list(beta = b.out, H = H.out, Q = Q.out,
+  structure(list(beta = b.out, H = H.out, Q = Q.out, y = y,
                  var.names = colnames(y), t = t, n = n, n.vars = n.vars, p = p, nburn = nburn, nsim = nsim), class = "bayesVAR_TVP")
 }
+
+#' @describeIn predictive.density Predictive density for bayes TVP-VAR model.
+#' @method predictive.density bayesVAR_TVP
+#' @export
+predictive.density.bayesVAR_TVP = function(model, T = 10) {
+  B = model$beta[model$t,,,]
+  dim(B) = c(model$n.vars, model$nsim)
+  Y.forecast = rcppPredictiveSim_TVP(tail(model$y,1), t(B), model$H, model$Q, 10)
+  dimnames(Y.forecast) = list(t = 0:T, model$var.names, NULL)
+  structure(Y.forecast, class = "predictiveDensity_bayesVAR")
+}
+
+#' @method plot predictiveDensity_bayesVAR
+#' @export
+plot.predictiveDensity_bayesVAR = function(Y.forecast, w = NULL) {
+  require(ggplot2)
+  Y.fc_quantile = apply(Y.forecast, 1:2, Hmisc::wtd.quantile, probs = c(0.05, 0.16, 0.5, 0.84, 0.95), weights = w, normwt = TRUE)
+  dimnames(Y.fc_quantile)[[1]] = paste0("Q_", c(0.05, 0.16, 0.5, 0.84, 0.95)*100)
+  Y.fc_quantile.melt = reshape2::melt(Y.fc_quantile, varnames = c("quantile", "t", "ts"))
+  Y.fc_quantile.dcast = reshape2::dcast(Y.fc_quantile.melt, ts + t ~ quantile)
+  ggplot(Y.fc_quantile.dcast, aes(x = t)) +
+    geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
+    geom_ribbon(aes(ymax = Q_95, ymin = Q_5, fill = "90%"), alpha = .25) +
+    geom_ribbon(aes(ymax = Q_84, ymin = Q_16, fill = "68%"), alpha = .25) +
+    geom_line(aes(color = "median", y = Q_50)) +
+    facet_wrap(~ts) +
+    scale_colour_manual("", values = "black") +
+    scale_fill_manual("", values = c("grey12", "black")) +
+    theme_bw() + theme(legend.direction = "horizontal", legend.position = "top")
+}
+
+#' Minimum entropy weights
+#'
+#' Finds minimum entropy weights using Kullback-Leibler information criterion.
+#' New prediction density conditions are expressed by function \eqn{g} and vector \eqn{g.rhs} such that
+#' \deqn{\mathbb{E}g(pd) = g.rhs}{Eg(pd) = g.rhs}
+#'
+#' @param pd Simulations of predictive density [T+1 x n x N.sim]
+#' @param g Transformation for pd used to express to new information. Must return vector of length p
+#' @param g.rhs Vector of length p
+#' @return \item{pi.star}{Adjusted probabilities}
+#'         \item{KLIC}{Kullback-Leibler information criterion}
+#'         \item{gamma}{Vector of Lagrange multipliers}
+#'         \item{optim.code}{An integer indicating why the optimization process terminated. See ?nlm for info}
+#' @references \itemize{
+#'               \item \insertRef{Robertson2005}{bayesVAR}
+#'             }
+#'
+#' @export
+MinimumEntropy_weights = function(pd, g, g.rhs) {
+  N = dim(pd)[3]
+  Y.transf = apply(pd, 3, g)
+  Y.transf.dist = Y.transf - g.rhs
+  f.min = function(gamma) mean(exp(t(gamma) %*%  Y.transf.dist))
+  f.min.start = -rowSums(Y.transf.dist)/rowSums(Y.transf.dist^2) # using Maclaurin series expansion of exp at x = 0 (e^(c*x) = 1 + c*x)
+  f.min.solve = stats::nlm(f.min, p = f.min.start)
+  gamma = f.min.solve$estimate
+  pi.star_ = exp(t(gamma) %*% Y.transf)[1,]
+  pi.star = pi.star_/sum(pi.star_)
+  KLIC = sum(pi.star * (log(pi.star) + log(N)))
+
+  list(pi.star = pi.star, KLIC = KLIC, gamma = gamma, optim.code = f.min.solve$code)
+}
+
 
 # Estimate of coefficients given loss function
 #' @method coef bayesVAR_TVP
@@ -144,6 +218,7 @@ coef.bayesVAR_TVP = function(model, loss.function = "quadratic") {
 
   list(beta.est = beta.est, H.est = H.est, Q.est = Q.est)
 }
+
 # Plot time varying parameters
 #' @method plot.beta bayesVAR_TVP
 #' @export
@@ -158,7 +233,7 @@ plot.beta.bayesVAR_TVP = function(model) {
 }
 
 # Impulse response
-#' @describeIn impulse.response
+#' @describeIn impulse.response Impulse response for bayes VAR-TVP
 #' @method impulse.response bayesVAR_TVP
 #' @export
 impulse.response.bayesVAR_TVP = function(model, R = 20, t = model$t, orthogonal = TRUE, reorder = 1:model$n, plot = TRUE) {

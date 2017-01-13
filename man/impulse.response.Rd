@@ -2,11 +2,19 @@
 % Please edit documentation in R/bayesVAR_tvp.R
 \name{impulse.response}
 \alias{impulse.response}
+\alias{impulse.response.bayesVAR_TVP}
 \title{Impulse response function for bayes VAR models}
 \usage{
 impulse.response(x, ...)
+
+\method{impulse.response}{bayesVAR_TVP}(model, R = 20, t = model$t,
+  orthogonal = TRUE, reorder = 1:model$n, plot = TRUE)
 }
 \description{
 Impulse response function for bayes VAR models
 }
+\section{Methods (by class)}{
+\itemize{
+\item \code{bayesVAR_TVP}: Impulse response for bayes VAR-TVP
+}}
 
