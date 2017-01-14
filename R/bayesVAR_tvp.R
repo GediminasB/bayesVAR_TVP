@@ -111,15 +111,15 @@ bayesVAR_TVP = function(Y, p = 1, nburn = 10000, nsim = 50000, tau = 40, beta.al
 
     beta.post_diff = beta.post[-1,,i] - beta.post[-t,,i]
 
-    Q.post_Q.inv = solve(Q.prior_Q + t(beta.post_diff) %*% beta.post_diff, tol = 1e-26)
+    Q.post_Q.inv = chol2inv(chol(Q.prior_Q + t(beta.post_diff) %*% beta.post_diff))
     Q.post_nu = Q.prior_nu + t
     Q.post.inv[,,i] = rWishart(1, Q.post_nu, Q.post_Q.inv)[,,1]
-    Q.post[,,i] = solve(Q.post.inv[,,i], tol = 1e-26)
+    Q.post[,,i] = chol2inv(chol(Q.post.inv[,,i]))
 
-    H.post_S.inv = solve(H.prior_S + rcppSSEmat(y, Z, beta.post[,,i]))
+    H.post_S.inv = chol2inv(chol(H.prior_S + rcppSSEmat(y, Z, beta.post[,,i])))
     H.post_nu = H.prior_nu + t
     H.post.inv[,,i] = rWishart(1, H.post_nu, H.post_S.inv)[,,1]
-    H.post[,,i] = solve(H.post.inv[,,i])
+    H.post[,,i] = chol2inv(chol(H.post.inv[,,i]))
 
     if((i-1) %% 100 == 0) pb$update((i-1)/N, tokens = list(task = ifelse(i-1 <= nburn, "Burn-in  ", "Sampling")))
   }

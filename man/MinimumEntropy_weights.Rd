@@ -2,7 +2,7 @@
 % Please edit documentation in R/bayesVAR_tvp.R
 \name{MinimumEntropy_weights}
 \alias{MinimumEntropy_weights}
-\title{Finding minimum entropy weights}
+\title{Minimum entropy weights}
 \usage{
 MinimumEntropy_weights(pd, g, g.rhs)
 }
@@ -13,9 +13,20 @@ MinimumEntropy_weights(pd, g, g.rhs)
 
 \item{g.rhs}{Vector of length p}
 }
+\value{
+\item{pi.star}{Adjusted probabilities}
+        \item{KLIC}{Kullback-Leibler information criterion}
+        \item{gamma}{Vector of Lagrange multipliers}
+        \item{optim.code}{An integer indicating why the optimization process terminated. See ?nlm for info}
+}
 \description{
 Finds minimum entropy weights using Kullback-Leibler information criterion.
 New prediction density conditions are expressed by function \eqn{g} and vector \eqn{g.rhs} such that
 \deqn{\mathbb{E}g(pd) = g.rhs}{Eg(pd) = g.rhs}
+}
+\references{
+\itemize{
+              \item \insertRef{Robertson2005}{bayesVAR}
+            }
 }
 
