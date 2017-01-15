@@ -250,10 +250,11 @@ impulse.response.bayesVAR_TVP = function(model, R = 20, t = model$t, orthogonal 
       geom_ribbon(aes(ymax = `84%`, ymin = `16%`, fill = "68%"), alpha = .25) +
       geom_line(aes(y = `50%`, color = "Median")) +
       facet_grid(impulse~response) +
-      xlab("Response") + ylab("Impulse") + ylim(-1, 1) +
+      xlab("Response") + ylab("Impulse") +
       scale_colour_manual("", values = "black") +
       scale_fill_manual("", values = c("grey12", "black")) +
-      theme_bw() + theme(legend.direction = "horizontal", legend.position = "top"))
+      theme_bw() + theme(legend.direction = "horizontal", legend.position = "top") +
+      coord_cartesian(ylim = c(-1, 1)))
 
   # Return
   Phi
