@@ -28,7 +28,7 @@ plot.beta = function(x, ...) UseMethod("plot.beta", x)
 predictive.density = function(x, ...) UseMethod("predictive.density", x)
 
 
-# Conditional draw of beta
+# Conditional draw of beta. C++ function wrapper
 .drawBeta = function(y, Z, H, Q, Pi = diag(ncol(Q)), beta1, P1 = diag(ncol(Q)), algorithm = "DK") {
   if(class(H) == "matrix") H = array(H, dim = c(nrow(H), ncol(H), nrow(y)))
   if(class(Q) == "matrix") Q = array(Q, dim = c(nrow(Q), ncol(Q), nrow(y)))
@@ -60,6 +60,7 @@ predictive.density = function(x, ...) UseMethod("predictive.density", x)
 #'             }
 #' @export
 bayesVAR_TVP = function(Y, p = 1, nburn = 10000, nsim = 50000, tau = 40, beta.algorithm = "DK") {
+  # Prepare data
   y.full = Y[-(1:p),]
   # x.full = na.omit(cbind(`const.` = 1, Y[-nrow(Y),]))
   x.full = cbind(1, lag(Y, 1:p))[-(1:p),]
@@ -67,10 +68,10 @@ bayesVAR_TVP = function(Y, p = 1, nburn = 10000, nsim = 50000, tau = 40, beta.al
 
   y.train = y.full[1:tau,]
   x.train = x.full[1:tau,]
-
   y = y.full[(tau+1):nrow(y.full),]
   x = x.full[(tau+1):nrow(x.full),]
 
+  # Length vars
   N = nburn + nsim
   t = nrow(y)
   n = ncol(y)
@@ -82,7 +83,7 @@ bayesVAR_TVP = function(Y, p = 1, nburn = 10000, nsim = 50000, tau = 40, beta.al
   resid.OLS = y.train - x.train %*% t(beta.OLS)
   sigma.OLS = 1/(tau - n*p - 1) * t(resid.OLS) %*% resid.OLS
   V.OLS = kronecker(solve(t(x.train) %*% x.train), sigma.OLS)
-
+  # Set the priors
   beta0.prior_mean = matrix(beta.OLS, 1)
   beta0.prior_V = 4 * V.OLS
   H.prior_nu = n + 1
@@ -92,51 +93,48 @@ bayesVAR_TVP = function(Y, p = 1, nburn = 10000, nsim = 50000, tau = 40, beta.al
 
   # Expand x into 3d array
   Z = rcppExpandKronecker(x, n)
-
+  # Arrays in which we will keep draws
   beta.post = array(NA, c(t, n.vars, N+1))
-  H.post.inv = H.post = array(NA, c(n, n, N+1))
-  Q.post.inv = Q.post = array(NA, c(n.vars, n.vars, N+1))
-
+  H.post = array(NA, c(n, n, N+1))
+  Q.post = array(NA, c(n.vars, n.vars, N+1))
+  # Starting values
   H.post[,,1] = H.prior_S
-  H.post.inv[,,1] = solve(H.post[,,1])
+  H.post.inv = solve(H.post[,,1])
   Q.post[,,1] = Q.prior_Q
-  Q.post.inv[,,1] = solve(Q.post[,,1])
+  Q.post.inv = solve(Q.post[,,1])
   beta.post[,,1] = matrix(0, t, n.vars)
-
+  # Set up progress bar
   pb = progress::progress_bar$new(total = N, format = ":task | :current/:total [:bar]  :elapsed | @ :eta", clear = FALSE)
   pb$update(0, tokens = list(task = "Burn-in"))
-
+  # Main loop
   for(i in 2:(N+1)) {
+    # Draw beta, contional on data, H and Q
     beta.post[,,i] = .drawBeta(y, Z, H.post[,,i-1], Q.post[,,i-1], beta1 = beta0.prior_mean, P1 = beta0.prior_V, algorithm = beta.algorithm)
-
+    # Draw Q contional on data and beta
     beta.post_diff = beta.post[-1,,i] - beta.post[-t,,i]
-
     Q.post_Q.inv = chol2inv(chol(Q.prior_Q + t(beta.post_diff) %*% beta.post_diff))
     Q.post_nu = Q.prior_nu + t
-    Q.post.inv[,,i] = rWishart(1, Q.post_nu, Q.post_Q.inv)[,,1]
-    Q.post[,,i] = chol2inv(chol(Q.post.inv[,,i]))
-
+    Q.post.inv = rWishart(1, Q.post_nu, Q.post_Q.inv)[,,1]
+    Q.post[,,i] = chol2inv(chol(Q.post.inv))
+    # Draw H conditional on data and beta
     H.post_S.inv = chol2inv(chol(H.prior_S + rcppSSEmat(y, Z, beta.post[,,i])))
     H.post_nu = H.prior_nu + t
-    H.post.inv[,,i] = rWishart(1, H.post_nu, H.post_S.inv)[,,1]
-    H.post[,,i] = chol2inv(chol(H.post.inv[,,i]))
-
+    H.post.inv = rWishart(1, H.post_nu, H.post_S.inv)[,,1]
+    H.post[,,i] = chol2inv(chol(H.post.inv))
+    # Update the progress bar
     if((i-1) %% 100 == 0) pb$update((i-1)/N, tokens = list(task = ifelse(i-1 <= nburn, "Burn-in  ", "Sampling")))
   }
-
+  # Subset the burnin and add dimnames
   b.out = beta.post[,, (nburn+2):(N+1)]
   dim(b.out) = c(t, n, n*p + 1, nsim)
-
   dimnames(b.out)[[3]] = colnames(x)
   dimnames(b.out)[[2]] = colnames(y)
   dimnames(b.out)[[1]] = index(y)
-
   H.out = H.post[,,(nburn+2):(N+1)]
   colnames(H.out) = rownames(H.out) = colnames(y)
-
   Q.out = Q.post[,,(nburn+2):(N+1)]
   colnames(Q.out) = rownames(Q.out) = colnames(Z)
-
+  # Return
   structure(list(beta = b.out, H = H.out, Q = Q.out, y = y,
                  var.names = colnames(y), t = t, n = n, n.vars = n.vars, p = p, nburn = nburn, nsim = nsim), class = "bayesVAR_TVP")
 }
@@ -252,7 +250,7 @@ impulse.response.bayesVAR_TVP = function(model, R = 20, t = model$t, orthogonal 
       geom_ribbon(aes(ymax = `84%`, ymin = `16%`, fill = "68%"), alpha = .25) +
       geom_line(aes(y = `50%`, color = "Median")) +
       facet_grid(impulse~response) +
-      xlab("Response") + ylab("Impulse") +
+      xlab("Response") + ylab("Impulse") + ylim(-1, 1) +
       scale_colour_manual("", values = "black") +
       scale_fill_manual("", values = c("grey12", "black")) +
       theme_bw() + theme(legend.direction = "horizontal", legend.position = "top"))
