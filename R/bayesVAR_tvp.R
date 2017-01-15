@@ -27,6 +27,14 @@ plot.beta = function(x, ...) UseMethod("plot.beta", x)
 #' @export
 predictive.density = function(x, ...) UseMethod("predictive.density", x)
 
+# Check if VAR parameters are explosive
+# TODO: speed comparison with Arma implementation
+.checkExplosive = function(beta, n, o) {
+  F.upper = matrix(beta, nrow = n, ncol = n*p+1)[,-1]
+  F.lower = cbind(diag((p-1)*n), matrix(0, nrow = (p-1)*n, ncol = n))
+  F_ = rbind(F.upper, F.lower)
+  any(abs(eigen(F_)$values) > 1)
+}
 
 # Conditional draw of beta. C++ function wrapper
 .drawBeta = function(y, Z, H, Q, Pi = diag(ncol(Q)), beta1, P1 = diag(ncol(Q)), algorithm = "DK") {
@@ -50,6 +58,7 @@ predictive.density = function(x, ...) UseMethod("predictive.density", x)
 #' @param nsim Number of MCMC draws excluding burn-in (defaults to 50000)
 #' @param tau Length of training sample used for determining prior parameters via OLS
 #' @param beta.algorithm Algorithm for drawing time-varying VAR parameters. Either 'DK' for Durbin and Coopman 2002, or 'CC' for Carter and Cohn 1994. Defaults to 'DK'
+#' @param reject.explosive Should the explosive (not stable) draws of VAR parameters be rejected? Defaults to 'FALSE'. For rationale consult Cogley and Sargent 2005. May significantly increase computtion time!
 #' @return \item{beta}{Draws of time-varying parameters (beta_t). 4D array [t x M x M*p+1 x draw]}
 #'         \item{H}{Draws of observation equation error term covariance matrix H. 3D array [M x M x draw]}
 #'         \item{Q}{Draws of state equation error term covariance matrix Q. 3D array [M x M x draw]}
@@ -57,9 +66,10 @@ predictive.density = function(x, ...) UseMethod("predictive.density", x)
 #'               \item \insertRef{KoopKorobilis2010}{bayesVAR}
 #'               \item \insertRef{CC1994}{bayesVAR}
 #'               \item \insertRef{DK2002}{bayesVAR}
+#'               \item \insertRef{CogleySargent2005}{bayesVAR}
 #'             }
 #' @export
-bayesVAR_TVP = function(Y, p = 1, nburn = 10000, nsim = 50000, tau = 40, beta.algorithm = "DK") {
+bayesVAR_TVP = function(Y, p = 1, nburn = 10000, nsim = 50000, tau = 40, beta.algorithm = "DK", reject.explosive = FALSE) {
   # Prepare data
   y.full = Y[-(1:p),]
   # x.full = na.omit(cbind(`const.` = 1, Y[-nrow(Y),]))
@@ -98,29 +108,41 @@ bayesVAR_TVP = function(Y, p = 1, nburn = 10000, nsim = 50000, tau = 40, beta.al
   H.post = array(NA, c(n, n, N+1))
   Q.post = array(NA, c(n.vars, n.vars, N+1))
   # Starting values
-  H.post[,,1] = H.prior_S
+  H.draw = H.prior_S
   H.post.inv = solve(H.post[,,1])
-  Q.post[,,1] = Q.prior_Q
+  Q.draw = Q.prior_Q
   Q.post.inv = solve(Q.post[,,1])
   beta.post[,,1] = matrix(0, t, n.vars)
   # Set up progress bar
   pb = progress::progress_bar$new(total = N, format = ":task | :current/:total [:bar]  :elapsed | @ :eta", clear = FALSE)
   pb$update(0, tokens = list(task = "Burn-in"))
+
+  reject_n = 0; i = 2
   # Main loop
-  for(i in 2:(N+1)) {
+  while(i <= (N+1)) {
     # Draw beta, contional on data, H and Q
-    beta.post[,,i] = .drawBeta(y, Z, H.post[,,i-1], Q.post[,,i-1], beta1 = beta0.prior_mean, P1 = beta0.prior_V, algorithm = beta.algorithm)
+    beta.draw = .drawBeta(y, Z, H.draw, Q.draw, beta1 = beta0.prior_mean, P1 = beta0.prior_V, algorithm = beta.algorithm)
     # Draw Q contional on data and beta
-    beta.post_diff = beta.post[-1,,i] - beta.post[-t,,i]
+    beta.post_diff = beta.draw[-1,] - beta.draw[-t,]
     Q.post_Q.inv = chol2inv(chol(Q.prior_Q + t(beta.post_diff) %*% beta.post_diff))
     Q.post_nu = Q.prior_nu + t
     Q.post.inv = rWishart(1, Q.post_nu, Q.post_Q.inv)[,,1]
-    Q.post[,,i] = chol2inv(chol(Q.post.inv))
+    Q.draw = chol2inv(chol(Q.post.inv))
     # Draw H conditional on data and beta
-    H.post_S.inv = chol2inv(chol(H.prior_S + rcppSSEmat(y, Z, beta.post[,,i])))
+    H.post_S.inv = chol2inv(chol(H.prior_S + rcppSSEmat(y, Z, beta.draw)))
     H.post_nu = H.prior_nu + t
     H.post.inv = rWishart(1, H.post_nu, H.post_S.inv)[,,1]
-    H.post[,,i] = chol2inv(chol(H.post.inv))
+    H.draw = chol2inv(chol(H.post.inv))
+
+    if(!reject.explosive || !.checkExplosive(beta.draw[t, ], n, p)) {
+      beta.post[,,i] = beta.draw
+      Q.post[,,i] = Q.draw
+      H.post[,,i] = H.draw
+      i = i + 1
+    } else {
+      reject_n = reject_n + 1
+    }
+
     # Update the progress bar
     if((i-1) %% 100 == 0) pb$update((i-1)/N, tokens = list(task = ifelse(i-1 <= nburn, "Burn-in  ", "Sampling")))
   }
@@ -136,7 +158,7 @@ bayesVAR_TVP = function(Y, p = 1, nburn = 10000, nsim = 50000, tau = 40, beta.al
   colnames(Q.out) = rownames(Q.out) = colnames(Z)
   # Return
   structure(list(beta = b.out, H = H.out, Q = Q.out, y = y,
-                 var.names = colnames(y), t = t, n = n, n.vars = n.vars, p = p, nburn = nburn, nsim = nsim), class = "bayesVAR_TVP")
+                 var.names = colnames(y), t = t, n = n, n.vars = n.vars, p = p, nburn = nburn, nsim = nsim, rejection_rate = reject_n/(N+reject_n)), class = "bayesVAR_TVP")
 }
 
 #' @describeIn predictive.density Predictive density for bayes TVP-VAR model.
@@ -236,7 +258,7 @@ plot.beta.bayesVAR_TVP = function(model) {
 #' @export
 impulse.response.bayesVAR_TVP = function(model, R = 20, t = model$t, orthogonal = TRUE, reorder = 1:model$n, plot = TRUE) {
   require(ggplot2)
-  Phi = simplify2array(rcppIRF(model$beta[t,,-1,], model$H, R, orthogonal = FALSE))
+  Phi = simplify2array(rcppIRF(model$beta[t,,-1,], model$H, R, orthogonal = orthogonal))
   dimnames(Phi) = list(impulse = model$var.names, response = model$var.names, t = (-model$p+1):R, path = NULL)
 
   Phi.q = apply(Phi, 1:3, quantile, c(0.05, 0.16, 0.5, 0.84, 0.95))

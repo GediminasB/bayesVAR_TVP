@@ -5,7 +5,7 @@
 \title{Estimates TVP-VAR model using MCMC sampler.}
 \usage{
 bayesVAR_TVP(Y, p = 1, nburn = 10000, nsim = 50000, tau = 40,
-  beta.algorithm = "DK")
+  beta.algorithm = "DK", reject.explosive = FALSE)
 }
 \arguments{
 \item{Y}{Matrix or timeseries object}
@@ -19,6 +19,8 @@ bayesVAR_TVP(Y, p = 1, nburn = 10000, nsim = 50000, tau = 40,
 \item{tau}{Length of training sample used for determining prior parameters via OLS}
 
 \item{beta.algorithm}{Algorithm for drawing time-varying VAR parameters. Either 'DK' for Durbin and Coopman 2002, or 'CC' for Carter and Cohn 1994. Defaults to 'DK'}
+
+\item{reject.explosive}{Should the explosive (not stable) draws of VAR parameters be rejected? Defaults to 'FALSE'. For rationale consult Cogley and Sargent 2005.}
 }
 \value{
 \item{beta}{Draws of time-varying parameters (beta_t). 4D array [t x M x M*p+1 x draw]}
@@ -36,6 +38,7 @@ Prior parameters are estimated using OLS method on training sample.
               \item \insertRef{KoopKorobilis2010}{bayesVAR}
               \item \insertRef{CC1994}{bayesVAR}
               \item \insertRef{DK2002}{bayesVAR}
+              \item \insertRef{CogleySargent2005}{bayesVAR}
             }
 }
 
