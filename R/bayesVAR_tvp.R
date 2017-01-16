@@ -94,11 +94,11 @@ bayesVAR_TVP = function(Y, p = 1, nburn = 10000, nsim = 50000, tau = 40, beta.al
   sigma.OLS = 1/(tau - n*p - 1) * t(resid.OLS) %*% resid.OLS
   V.OLS = kronecker(solve(t(x.train) %*% x.train), sigma.OLS)
   # Set the priors
-  beta1.prior_mean = matrix(beta.OLS, 1)
+  beta1.prior_mean = as.vector(matrix(beta.OLS, 1))
   beta1.prior_V = 4 * V.OLS
   beta1.prior_V.inv = solve(beta1.prior_V)
   H.prior_nu = n + 1
-  H.prior_S = sigma.OLS
+  H.prior_S = diag(n)
   Q.prior_nu = tau
   Q.prior_Q = 0.0001 * tau * V.OLS
 
@@ -117,7 +117,7 @@ bayesVAR_TVP = function(Y, p = 1, nburn = 10000, nsim = 50000, tau = 40, beta.al
   H.draw.inv = solve(H.draw)
   Q.draw = Q.prior_Q
   Q.draw.inv = solve(Q.draw)
-  beta.draw = matrix(beta0.prior_mean, t, n.vars, byrow = TRUE)
+  beta.draw = matrix(0, t, n.vars, byrow = TRUE)
   # Set up progress bar
   pb = progress::progress_bar$new(total = N, format = ":task | :current/:total [:bar]  :elapsed | @ :eta", clear = FALSE)
   pb$update(0, tokens = list(task = "Burn-in"))
@@ -141,6 +141,7 @@ bayesVAR_TVP = function(Y, p = 1, nburn = 10000, nsim = 50000, tau = 40, beta.al
     beta1.post_mean = beta1.post_V %*% (beta1.prior_V.inv %*% beta1.prior_mean + rcppZHy_TVP(Z, H.draw.inv, y, beta.draw))
     beta.draw = .drawBeta(y, Z, H.draw, Q.draw, beta1 = beta1.post_mean, P1 = beta1.post_V, algorithm = beta.algorithm)
 
+    # Reject or save
     if(!reject.explosive || !.checkExplosive(beta.draw[t, ], n, p)) {
       beta.post[,,i] = beta.draw
       Q.post[,,i] = Q.draw
@@ -249,9 +250,9 @@ coef.bayesVAR_TVP = function(model, loss.function = "quadratic") {
 # Plot time varying parameters
 #' @method plot.beta bayesVAR_TVP
 #' @export
-plot.beta.bayesVAR_TVP = function(model) {
+plot.beta.bayesVAR_TVP = function(model, loss.function = "quadratic") {
   require(ggplot2)
-  A.coef = coef(model)
+  A.coef = coef(model, loss.function = loss.function)
   A.coef.melt = reshape2::melt(A.coef$beta.est, varnames = c("row", "col", "t"))
   A.plot = ggplot(A.coef.melt, aes(x = t, y = value)) +
     geom_hline(yintercept = 0, linetype = "dashed", col = "red") +
