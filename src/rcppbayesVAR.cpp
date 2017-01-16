@@ -37,6 +37,18 @@ arma::mat rcppZHy(arma::cube Z, arma::mat H, arma::mat y) {
 }
 
 // [[Rcpp::export]]
+arma::mat rcppZHy_TVP(arma::cube Z, arma::mat H, arma::mat y, arma::mat beta) {
+  int n = Z.n_slices;
+  int m = Z.n_cols;
+  arma::mat ZHy(m, 1, arma::fill::zeros);
+  for(int i = 0; i < n; ++i) {
+    ZHy = ZHy + Z.slice(i).t() * H * (y.row(i).t() - Z.slice(i) * (beta.row(i) - beta.row(1)).t());
+  }
+  return ZHy;
+}
+
+
+// [[Rcpp::export]]
 arma::mat rcppSSE(arma::mat y, arma::cube Z, arma::colvec beta) {
   int n = Z.n_slices;
   int m = y.n_cols;

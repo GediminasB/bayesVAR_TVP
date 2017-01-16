@@ -13,6 +13,10 @@ rcppZHy <- function(Z, H, y) {
     .Call('bayesVAR_rcppZHy', PACKAGE = 'bayesVAR', Z, H, y)
 }
 
+rcppZHy_TVP <- function(Z, H, y, beta) {
+    .Call('bayesVAR_rcppZHy_TVP', PACKAGE = 'bayesVAR', Z, H, y, beta)
+}
+
 rcppSSE <- function(y, Z, beta) {
     .Call('bayesVAR_rcppSSE', PACKAGE = 'bayesVAR', y, Z, beta)
 }

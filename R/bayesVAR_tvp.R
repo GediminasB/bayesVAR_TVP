@@ -94,10 +94,11 @@ bayesVAR_TVP = function(Y, p = 1, nburn = 10000, nsim = 50000, tau = 40, beta.al
   sigma.OLS = 1/(tau - n*p - 1) * t(resid.OLS) %*% resid.OLS
   V.OLS = kronecker(solve(t(x.train) %*% x.train), sigma.OLS)
   # Set the priors
-  beta0.prior_mean = matrix(beta.OLS, 1)
-  beta0.prior_V = 4 * V.OLS
+  beta1.prior_mean = matrix(beta.OLS, 1)
+  beta1.prior_V = 4 * V.OLS
+  beta1.prior_V.inv = solve(beta1.prior_V)
   H.prior_nu = n + 1
-  H.prior_S = diag(n)
+  H.prior_S = sigma.OLS
   Q.prior_nu = tau
   Q.prior_Q = 0.0001 * tau * V.OLS
 
@@ -107,12 +108,16 @@ bayesVAR_TVP = function(Y, p = 1, nburn = 10000, nsim = 50000, tau = 40, beta.al
   beta.post = array(NA, c(t, n.vars, N+1))
   H.post = array(NA, c(n, n, N+1))
   Q.post = array(NA, c(n.vars, n.vars, N+1))
+
+  Q.post_nu = Q.prior_nu + t
+  H.post_nu = H.prior_nu + t
+
   # Starting values
   H.draw = H.prior_S
-  H.post.inv = solve(H.post[,,1])
+  H.draw.inv = solve(H.draw)
   Q.draw = Q.prior_Q
-  Q.post.inv = solve(Q.post[,,1])
-  beta.post[,,1] = matrix(0, t, n.vars)
+  Q.draw.inv = solve(Q.draw)
+  beta.draw = matrix(beta0.prior_mean, t, n.vars, byrow = TRUE)
   # Set up progress bar
   pb = progress::progress_bar$new(total = N, format = ":task | :current/:total [:bar]  :elapsed | @ :eta", clear = FALSE)
   pb$update(0, tokens = list(task = "Burn-in"))
@@ -120,19 +125,21 @@ bayesVAR_TVP = function(Y, p = 1, nburn = 10000, nsim = 50000, tau = 40, beta.al
   reject_n = 0; i = 2
   # Main loop
   while(i <= (N+1)) {
-    # Draw beta, contional on data, H and Q
-    beta.draw = .drawBeta(y, Z, H.draw, Q.draw, beta1 = beta0.prior_mean, P1 = beta0.prior_V, algorithm = beta.algorithm)
     # Draw Q contional on data and beta
-    beta.post_diff = beta.draw[-1,] - beta.draw[-t,]
-    Q.post_Q.inv = chol2inv(chol(Q.prior_Q + t(beta.post_diff) %*% beta.post_diff))
-    Q.post_nu = Q.prior_nu + t
-    Q.post.inv = rWishart(1, Q.post_nu, Q.post_Q.inv)[,,1]
-    Q.draw = chol2inv(chol(Q.post.inv))
+    beta.draw_diff = beta.draw[-1,] - beta.draw[-t,]
+    Q.post_Q.inv = chol2inv(chol(Q.prior_Q + t(beta.draw_diff) %*% beta.draw_diff))
+    Q.draw.inv = rWishart(1, Q.post_nu, Q.post_Q.inv)[,,1]
+    Q.draw = chol2inv(chol(Q.draw.inv))
+
     # Draw H conditional on data and beta
     H.post_S.inv = chol2inv(chol(H.prior_S + rcppSSEmat(y, Z, beta.draw)))
-    H.post_nu = H.prior_nu + t
-    H.post.inv = rWishart(1, H.post_nu, H.post_S.inv)[,,1]
-    H.draw = chol2inv(chol(H.post.inv))
+    H.draw.inv = rWishart(1, H.post_nu, H.post_S.inv)[,,1]
+    H.draw = chol2inv(chol(H.draw.inv))
+
+    # Draw beta, contional on data, H and Q
+    beta1.post_V = chol2inv(chol(beta1.prior_V.inv + rcppZHZ(Z, H.draw.inv)))
+    beta1.post_mean = beta1.post_V %*% (beta1.prior_V.inv %*% beta1.prior_mean + rcppZHy_TVP(Z, H.draw.inv, y, beta.draw))
+    beta.draw = .drawBeta(y, Z, H.draw, Q.draw, beta1 = beta1.post_mean, P1 = beta1.post_V, algorithm = beta.algorithm)
 
     if(!reject.explosive || !.checkExplosive(beta.draw[t, ], n, p)) {
       beta.post[,,i] = beta.draw

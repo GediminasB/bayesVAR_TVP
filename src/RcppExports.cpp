@@ -43,6 +43,20 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rcppZHy_TVP
+arma::mat rcppZHy_TVP(arma::cube Z, arma::mat H, arma::mat y, arma::mat beta);
+RcppExport SEXP bayesVAR_rcppZHy_TVP(SEXP ZSEXP, SEXP HSEXP, SEXP ySEXP, SEXP betaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::cube >::type Z(ZSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type H(HSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type y(ySEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type beta(betaSEXP);
+    rcpp_result_gen = Rcpp::wrap(rcppZHy_TVP(Z, H, y, beta));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rcppSSE
 arma::mat rcppSSE(arma::mat y, arma::cube Z, arma::colvec beta);
 RcppExport SEXP bayesVAR_rcppSSE(SEXP ySEXP, SEXP ZSEXP, SEXP betaSEXP) {
