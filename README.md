@@ -2,7 +2,7 @@
 R/C++ implementation of Bayes VAR-TVP models.
 
 Package can be installed using `devtools`, e.g.
-`{r}
+```r
 library(devtools)
 install_github("hadley/dplyr")
-`
+```
