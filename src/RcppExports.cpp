@@ -57,6 +57,20 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rcppZHy_FAVAR
+arma::mat rcppZHy_FAVAR(arma::mat Z, arma::mat H, arma::mat y, arma::mat beta);
+RcppExport SEXP bayesVAR_rcppZHy_FAVAR(SEXP ZSEXP, SEXP HSEXP, SEXP ySEXP, SEXP betaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type Z(ZSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type H(HSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type y(ySEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type beta(betaSEXP);
+    rcpp_result_gen = Rcpp::wrap(rcppZHy_FAVAR(Z, H, y, beta));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rcppSSE
 arma::mat rcppSSE(arma::mat y, arma::cube Z, arma::colvec beta);
 RcppExport SEXP bayesVAR_rcppSSE(SEXP ySEXP, SEXP ZSEXP, SEXP betaSEXP) {
@@ -113,6 +127,23 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rcppDrawBeta_CC2
+arma::mat rcppDrawBeta_CC2(arma::mat y, arma::cube Z, arma::cube H, arma::cube Q, arma::mat Pi, arma::rowvec beta1, arma::mat P1);
+RcppExport SEXP bayesVAR_rcppDrawBeta_CC2(SEXP ySEXP, SEXP ZSEXP, SEXP HSEXP, SEXP QSEXP, SEXP PiSEXP, SEXP beta1SEXP, SEXP P1SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type y(ySEXP);
+    Rcpp::traits::input_parameter< arma::cube >::type Z(ZSEXP);
+    Rcpp::traits::input_parameter< arma::cube >::type H(HSEXP);
+    Rcpp::traits::input_parameter< arma::cube >::type Q(QSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type Pi(PiSEXP);
+    Rcpp::traits::input_parameter< arma::rowvec >::type beta1(beta1SEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type P1(P1SEXP);
+    rcpp_result_gen = Rcpp::wrap(rcppDrawBeta_CC2(y, Z, H, Q, Pi, beta1, P1));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rcppKalmanFilterSmooth
 arma::mat rcppKalmanFilterSmooth(arma::mat y, arma::cube Z, arma::cube H, arma::cube Q, arma::mat Pi, arma::rowvec beta1, arma::mat P1);
 RcppExport SEXP bayesVAR_rcppKalmanFilterSmooth(SEXP ySEXP, SEXP ZSEXP, SEXP HSEXP, SEXP QSEXP, SEXP PiSEXP, SEXP beta1SEXP, SEXP P1SEXP) {
@@ -161,18 +192,48 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rcppMakeRegs
+arma::cube rcppMakeRegs(arma::mat y, int p);
+RcppExport SEXP bayesVAR_rcppMakeRegs(SEXP ySEXP, SEXP pSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type y(ySEXP);
+    Rcpp::traits::input_parameter< int >::type p(pSEXP);
+    rcpp_result_gen = Rcpp::wrap(rcppMakeRegs(y, p));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rcppPredictiveSim_TVP
-arma::cube rcppPredictiveSim_TVP(arma::rowvec starting_Y, arma::mat B, arma::cube H, arma::cube Q, int T);
+arma::cube rcppPredictiveSim_TVP(arma::mat starting_Y, arma::mat B, arma::cube H, arma::cube Q, int T);
 RcppExport SEXP bayesVAR_rcppPredictiveSim_TVP(SEXP starting_YSEXP, SEXP BSEXP, SEXP HSEXP, SEXP QSEXP, SEXP TSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::rowvec >::type starting_Y(starting_YSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type starting_Y(starting_YSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type B(BSEXP);
     Rcpp::traits::input_parameter< arma::cube >::type H(HSEXP);
     Rcpp::traits::input_parameter< arma::cube >::type Q(QSEXP);
     Rcpp::traits::input_parameter< int >::type T(TSEXP);
     rcpp_result_gen = Rcpp::wrap(rcppPredictiveSim_TVP(starting_Y, B, H, Q, T));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rcppPredictiveSim_FTVP
+arma::cube rcppPredictiveSim_FTVP(arma::mat starting_Y, arma::mat B, arma::cube H, arma::cube Q, arma::cube L, arma::cube R, int T, int k);
+RcppExport SEXP bayesVAR_rcppPredictiveSim_FTVP(SEXP starting_YSEXP, SEXP BSEXP, SEXP HSEXP, SEXP QSEXP, SEXP LSEXP, SEXP RSEXP, SEXP TSEXP, SEXP kSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type starting_Y(starting_YSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type B(BSEXP);
+    Rcpp::traits::input_parameter< arma::cube >::type H(HSEXP);
+    Rcpp::traits::input_parameter< arma::cube >::type Q(QSEXP);
+    Rcpp::traits::input_parameter< arma::cube >::type L(LSEXP);
+    Rcpp::traits::input_parameter< arma::cube >::type R(RSEXP);
+    Rcpp::traits::input_parameter< int >::type T(TSEXP);
+    Rcpp::traits::input_parameter< int >::type k(kSEXP);
+    rcpp_result_gen = Rcpp::wrap(rcppPredictiveSim_FTVP(starting_Y, B, H, Q, L, R, T, k));
     return rcpp_result_gen;
 END_RCPP
 }

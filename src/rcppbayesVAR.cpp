@@ -42,7 +42,18 @@ arma::mat rcppZHy_TVP(arma::cube Z, arma::mat H, arma::mat y, arma::mat beta) {
   int m = Z.n_cols;
   arma::mat ZHy(m, 1, arma::fill::zeros);
   for(int i = 0; i < n; ++i) {
-    ZHy = ZHy + Z.slice(i).t() * H * (y.row(i).t() - Z.slice(i) * (beta.row(i) - beta.row(1)).t());
+    ZHy = ZHy + Z.slice(i).t() * H * (y.row(i).t() - Z.slice(i) * (beta.row(i) - beta.row(0)).t());
+  }
+  return ZHy;
+}
+
+// [[Rcpp::export]]
+arma::mat rcppZHy_FAVAR(arma::mat Z, arma::mat H, arma::mat y, arma::mat beta) {
+  int n = y.n_rows;
+  int m = Z.n_cols;
+  arma::mat ZHy(m, 1, arma::fill::zeros);
+  for(int i = 0; i < n; ++i) {
+    ZHy = ZHy + Z.t() * H * (y.row(i).t() - Z * (beta.row(i) - beta.row(0)).t());
   }
   return ZHy;
 }
@@ -69,6 +80,7 @@ arma::mat rcppSSEmat(arma::mat y, arma::cube Z, arma::mat beta) {
   }
   return SSE;
 }
+
 
 // [[Rcpp::export]]
 arma::mat rcppResidConstB(arma::mat y, arma::cube Z, arma::rowvec beta) {
