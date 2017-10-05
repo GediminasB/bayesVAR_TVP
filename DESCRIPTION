@@ -1,4 +1,4 @@
-Package: bayesVAR-TVP
+Package: bayesVARTVP
 Type: Package
 Title: Bayesian analysis of Vector Autoregressive Models
 Version: 0.1.0
