@@ -13,7 +13,8 @@ Imports:
     Rcpp (>= 0.12.7),
     progress,
     ggplot2,
-    reshape2
+    reshape2,
+    Rdpack
 LinkingTo: Rcpp, RcppArmadillo
 RoxygenNote: 5.0.1
 RdMacros: Rdpack
